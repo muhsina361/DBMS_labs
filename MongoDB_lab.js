@@ -1,0 +1,39 @@
+// 1) Insert five documents into the orders collection
+db.orders.insertOne({order_no:"O1",year:2020,paid:"Y",cost:{price:30,currency:"INR"},items:{pno:"P1",colors:["blue","black"],quantity:15},delivery_days:5});
+db.orders.insertOne({order_no:"O2",year:2020,paid:"Y",cost:{price:13,currency:"DLR"},items:[{pno:"P2",colors:"white",quantity:4},{pno:"P3",colors:["white","black"],quantity:1}],delivery_days:4});
+db.orders.insertOne({order_no:"O3",year:2018,paid:"N",cost:{price:33,currency:"EUR"},items:{pno:"P3",colors:["blue","black"],quantity:4},delivery_days:4});
+db.orders.insertOne({order_no:"O4",year:2017,paid:"Y",cost:{price:17,currency:"INR"},items:[{pno:"P2",colors:["pink","black"],quantity:14},{pno:"P4",colors:"white",quantity:1}],delivery_days:2});
+db.orders.insertOne({order_no: "O5",year: 2020,paid: "Y",cost: { price: 19, currency: "INR" },items: [{ pno: "P1", quantity: 15 }],delivery_days: 3});
+
+// 2) Retrieve all documents that contain paid orders (i.e. "paid" field is "Y")
+db.orders.find({ paid: "Y" })
+
+// 3) Retrieve all documents that contain paid orders and the orders are from before 2019
+db.orders.find({ paid: "Y", year: { $lt: 2019 } })
+
+// 4) Retrieve all documents that contain unpaid orders or whose orders are from before 2019
+db.orders.find({ $or: [ { paid: "N" }, { year: { $lt: 2019 } } ] })
+
+// 5) Retrieve all documents that contain orders whose price is in INR
+db.orders.find({ "cost.currency": "INR" })
+
+// 6) Retrieve all documents that contain orders whose price is less than 18 INR
+db.orders.find({ "cost.currency": "INR", "cost.price": { $lt: 18 } })
+
+// 7) Retrieve all documents with orders that contain product "P2"
+db.orders.find({ "items.pno": "P2" })
+
+// 8) Retrieve all documents with orders that contain products whose quantity is less than 13
+db.orders.aggregate([
+    { $match: { "items.quantity": { $lt: 13 } } },
+    { $project: { 
+        order_no: 1, 
+        items: { 
+            $filter: { 
+                input: "$items", 
+                as: "item", 
+                cond: { $lt: ["$$item.quantity", 13] } 
+            } 
+        } 
+    } }
+])
